@@ -23,3 +23,4 @@ convolutional networks]（https://arxiv.org/pdf/1810.12890.pdf）
 * 加入pkeep随训练次数迭代的功能
 * 尝试增加高宽不相等的特征图的dropblock功能
 * 学习谷歌代码规范对代码进行优化
+* 对cifar10进行训练 观察效果
