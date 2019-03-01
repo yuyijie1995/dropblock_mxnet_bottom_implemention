@@ -19,6 +19,10 @@ convolutional networks]（https://arxiv.org/pdf/1810.12890.pdf）
 * mnist训练集上测试通过
 * 新增了维度检查功能 用户输入二维特征图是程序不会奔溃
 
+### dropblock_gpu和dropout_cpu mnist训练效果对比
+![](https://github.com/yuyijie1995/dropblock_mxnet_bottom_implemention/blob/master/gpu_blocksize3.png)
+![](https://github.com/yuyijie1995/dropblock_mxnet_bottom_implemention/blob/master/cpu_dropout.jpg)
+
 ### TODO
 * 加入pkeep随训练次数迭代的功能
 * 尝试增加高宽不相等的特征图的dropblock功能
