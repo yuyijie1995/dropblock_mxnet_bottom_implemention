@@ -83,13 +83,25 @@ __global__ void DropblockForwardKernel(
              if(ctx.is_train||(param.mode==gpudropblock::kAlways))
              {
                  real_t pkeep=param.p;
+                 static int iteration=0;
+                 float p_current=1.0;
+
+                 if (p_current>pkeep)
+                 {
+                     ++iteration;
+                     p_current-=((p_current-pkeep)/5000.0)*iteration;
+                 }
+                 printf("current iteration is :%d",iteration);
+                 printf("current pkeep is :%f",p_current);
+
                  const int blocksize=param.block_size;
                  index_t feat_size=height;
-                 double gamma = ((1 - pkeep) / (blocksize * blocksize)) * ((feat_size * feat_size) /((feat_size - blocksize + 1) *
+                 double gamma = ((1 - p_current) / (blocksize * blocksize)) * ((feat_size * feat_size) /((feat_size - blocksize + 1) *
                                                                                                         (feat_size - blocksize + 1)));
 
                  index_t mask_reduction=blocksize/2;
                  index_t mask_height,mask_width;
+
                  if ((blocksize % 2) != 0) {
                      mask_height = height - mask_reduction * 2;
                      mask_width = width - mask_reduction * 2;
@@ -187,13 +199,9 @@ __global__ void DropblockForwardKernel(
                                  } else {
                                      mask_padding[i][j][k][l] = mask_new[i][j][k - padding][l - padding];
                                  }
-                                 printf("%d\t",mask_padding[i][j][k][l]);
                              }
-                             printf("\n");
                          }
-                         printf("\n");
                      }
-                     printf("\n");
                  }
 
                  std::vector<std::vector<std::vector<int >>> mask_3d(num_batches, std::vector<std::vector<int >>(1,
@@ -225,14 +233,11 @@ __global__ void DropblockForwardKernel(
                              for (int l = 0; l < blocksize; ++l) {
 
                                  kernel_3d[i][j][l + k * blocksize] = weight_mat[i][j][k][l];
-                                 printf("%d\t",kernel_3d[i][j][l + k * blocksize]);
                              }
-                             printf("\n");
                          }
-                         printf("\n");
                      }
-                     printf("\n");
                  }
+
 
                  //计算卷积输出矩阵的维数
                  index_t outm = padding_height - blocksize + 1;
@@ -361,6 +366,7 @@ __global__ void DropblockForwardKernel(
                          }
                      }
                  }
+
                  std::vector<int> conv_cache;//存储卷积完了的数字
                  for (int i = 0; i < num_batches; ++i) {
                      for (int j = 0; j < 1; ++j) {
@@ -393,18 +399,13 @@ __global__ void DropblockForwardKernel(
                  index_t width_to_crop = outm - input_width;
 
                  if (height_to_crop != 0) {
-                     printf("height_to_crop !=0");
                      for (int i = 0; i < num_batches; ++i) {
                          for (int j = 0; j < 1; ++j) {
                              for (int k = 0; k < outm - height_to_crop + 1; ++k) {
-                                 printf("\n");
                                  for (int l = 0; l < outm; ++l) {
                                      mask_conved[i][j][k][l] = (conv_cache[i * outm * (outm - height_to_crop)
                                                                   + j * outm * (outm - height_to_crop) +
                                                                   k * outm + l]==0)? 1:0;
-                                     printf("%d\t",conv_cache[i * outm * (outm - height_to_crop)
-                                                     + j * outm * (outm - height_to_crop) +
-                                                     k * outm + l]);
                                  }
 
                              }
@@ -412,63 +413,45 @@ __global__ void DropblockForwardKernel(
                      }
                  }
                  if (width_to_crop != 0) {
-                     printf("width_to_crop !=0");
                      for (int i = 0; i < num_batches; ++i) {
                          for (int j = 0; j < 1; ++j) {
                              for (int k = 0; k < outm; ++k) {
-                                 printf("\n");
                                  for (int l = 0; l < outm - width_to_crop + 1; ++l) {
                                      mask_conved[i][j][k][l] =( conv_cache[i * outm * (outm - width_to_crop) +
                                                                   j * outm * (outm - width_to_crop) +
                                                                   k * (outm - width_to_crop) + l]==0)? 1:0;
-                                     printf("%d\t",conv_cache[i * outm * (outm - width_to_crop) +
-                                                     j * outm * (outm - width_to_crop) +
-                                                     k * (outm - width_to_crop) + l]);
+
                                  }
                              }
                          }
                      }
                  }
                  if ((width_to_crop != 0)&&(height_to_crop!=0)) {
-                     printf("width_to_crop !=0");
                      for (int i = 0; i < num_batches; ++i) {
                          for (int j = 0; j < 1; ++j) {
                              for (int k = 0; k < outm-height_to_crop+1; ++k) {
-                                 printf("\n");
                                  for (int l = 0; l < outm - width_to_crop + 1; ++l) {
                                      mask_conved[i][j][k][l] =( conv_cache[i * (outm-height_to_crop) * (outm - width_to_crop) +
                                                                   j * (outm-height_to_crop) * (outm - width_to_crop) +
                                                                   k * (outm - width_to_crop) + l]==0)? 1:0;
-                                     printf("%d\t",conv_cache[i * outm * (outm - width_to_crop) +
-                                                     j * outm * (outm - width_to_crop) +
-                                                     k * (outm - width_to_crop) + l]);
                                  }
                              }
                          }
                      }
                  }
-
-                 printf("width_to_crop和height_to_crop都等于0");
                  for (int i = 0; i < num_batches; ++i) {
                      for (int j = 0; j < 1; ++j) {
                          for (int k = 0; k < outm; ++k) {
-                             printf("\n");
                              for (int l = 0; l < outm; ++l) {
                                  mask_conved[i][j][k][l] =(conv_cache[i * outm * outm + j * outm * outm + k * outm + l]==0)? 1:0;
 
-                                 printf("%d\t",conv_cache[i * outm * outm + j * outm * outm + k * outm + l]);
                              }
-                             printf("\n");
                          }
-                         printf("\n");
                      }
-                     printf("\n");
                  }
                  //把mask_conved变为一个1D的数组来与indata进行计算
-                 //std::vector<int> mask_conved_1d(num_batches * channels * height * width);
                  int mask_conved_1d[count];
                  int *dev_mask;
-                 printf("mask_conved_1d：\n");
                  for (int i = 0; i < num_batches; ++i) {
                      for (int j = 0; j < channels; ++j) {
                          for (int k = 0; k < height; ++k) {
@@ -476,13 +459,8 @@ __global__ void DropblockForwardKernel(
                                  mask_conved_1d[i * channels * height * width
                                                 + j * height * width +
                                                 k * width + l] = mask_conved[i][0][k][l];
-                                 printf("%d\t",mask_conved_1d[i * channels * height * width
-                                                              + j * height * width +
-                                                              k * width + l]);
                              }
-                             printf("\n");
                          }
-                         printf("\n");
                      }
                  }
                  //allocate memory on GPU
@@ -494,17 +472,14 @@ __global__ void DropblockForwardKernel(
                      const DType *input_data=inputs[gpudropblock::kData].dptr<DType>();
                      DType *mask_out=outputs[gpudropblock::kMask].dptr<DType>();
                      DType *dropblock_out=outputs[gpudropblock::kOut].dptr<DType>();
-//                     DropblockForwardKernel<DType><<<ROI_GET_BLOCKS(count),kMaxThreadsPerBlock,0,stream>>>(
-//                             count, param.block_size,num_batches,channels,height,width,param.p,
-//                                     input_data,dropblock_out,mask_out
-//                     );
                      DropblockForwardKernel<DType><<<ROI_GET_BLOCKS(count),kMaxThreadsPerBlock,0,stream>>>(
                              count,input_data,dropblock_out,mask_out,dev_mask
                      );
                  })
+
+                 cudaFree (dev_mask);
              }
              else{
-                 //printf("以上啥都没有发生");
                  const TBlob& data = inputs[gpudropblock::kData];
                  if (req[gpudropblock::kOut] == kWriteTo) {
                      mxnet_op::copy(s, out, data);
@@ -581,8 +556,11 @@ __global__ void DropblockForwardKernel(
 NNVM_REGISTER_OP(GPUDropblock)
 .set_attr<FCompute>("FCompute<gpu>", DropblockForwardCompute<gpu>);
 
-NNVM_REGISTER_OP(_backward_GPUDropout)
+
+NNVM_REGISTER_OP(_backward_GPUDropblock)
 .set_attr<FCompute>("FCompute<gpu>", DropblockBackwardCompute<gpu>);
+
+
 
 }  // namespace op
 }  // namespace mxnet

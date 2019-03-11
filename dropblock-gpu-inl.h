@@ -54,23 +54,6 @@ namespace mxnet {
                         .describe("Axes for variational dropblock kernel.");
             }
         };
-//        static OpStatePtr CreateDropoutState(const nnvm::NodeAttrs &attrs,
-//                                             const Context ctx,
-//                                             const std::vector<TShape> &in_shapes,
-//                                             const std::vector<int> &in_types) {
-//            const GPUDropblockParam& param = nnvm::get<GPUDropblockParam>(attrs.parsed);
-//            OpStatePtr state;
-//            MSHADOW_REAL_TYPE_SWITCH(in_types[gpudropblock::kData], DType, {
-//                if (ctx.dev_type == kGPU) {
-//                    state = OpStatePtr::Create<GPUDropblockOp<gpu, DType>>(param, ctx);
-//                } else {
-//                    state = OpStatePtr::Create<GPUdropblockOp<cpu, DType>>(param, ctx);
-//                }
-//                return state;
-//            });
-//            LOG(FATAL) << "should never reach here";
-//            return OpStatePtr();  // should never reach here
-//        }
 
     }  // namespace op
 }  // namespace mxnet

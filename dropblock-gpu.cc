@@ -22,8 +22,18 @@ void DropblockForward(
 {
     DCHECK(nbatches!=0);
     DCHECK(N>0);
+    static int iteration=0;
+    float p_current=1.0;
+    if (p_current>pkeep)
+    {
+        ++iteration;
+        p_current-=((p_current-pkeep)/5000.0)*iteration;
+    }
+    printf("current iteration is :%d",iteration);
+    printf("current pkeep is :%f",p_current);
+
     index_t feat_size=nheight;
-    double gamma=((1 - pkeep) / (block_size * block_size)) * ((feat_size * feat_size) /
+    double gamma=((1 - p_current) / (block_size * block_size)) * ((feat_size * feat_size) /
                                                               ((feat_size - block_size + 1) *
                                                                (feat_size - block_size + 1)));
     index_t mask_reduction = block_size / 2;
@@ -58,15 +68,13 @@ void DropblockForward(
         }
     }
 
-    printf("mask:\n");
+
     for (int j = 0; j < nbatches; ++j) {
         for (int k = 0; k < mask_area; ++k) {
             if (a[k] == -100) {
                 mask[j][0][k] = 1;
             }
-            printf("%d\t",mask[j][0][k]);
         }
-        printf("\n");
     }
     std::vector<std::vector<std::vector<std::vector<int>>>> mask_new(nbatches,
                                                                      std::vector<std::vector<std::vector<int>>>(
@@ -78,18 +86,14 @@ void DropblockForward(
 
     index_t mask_i = 0;
     index_t mask_j = 0;
-    printf("mask_new:\n");
     for (int m = 0; m < nbatches; ++m) {
         for (int n = 0; n < 1; ++n) {
             for (int l = 0; l < mask_area; ++l) {
                 mask_i = l / mask_width;
                 mask_j = l % mask_width;
                 mask_new[m][n][mask_i][mask_j] = mask[m][n][l];
-                printf("%d\t",mask_new[m][n][mask_i][mask_j]);
             }
-            printf("\n");
         }
-        printf("\n");
     }
 
     //生成卷积所使用的weight_mat
@@ -123,7 +127,6 @@ void DropblockForward(
                                                                                          padding_height,
                                                                                          std::vector<int>(
                                                                                                  padding_width))));
-    printf("mask_padding:\n");
     for (int n = 0; n < nbatches; ++n) {
         for (int j = 0; j < 1; ++j) {
             for (int k = 0; k < padding_height; ++k) {
@@ -135,13 +138,9 @@ void DropblockForward(
                     } else {
                         mask_padding[n][j][k][m] = mask_new[n][j][k - padding][m - padding];
                     }
-                    printf("%d\t",mask_padding[n][j][k][m]);
                 }
-                printf("\n");
             }
-            printf("\n");
         }
-        printf("\n");
     }
     std::vector<std::vector<std::vector<int >>> mask_1d(nbatches,std::vector<std::vector<int>>(1,std::vector<int>(padding_height*padding_width)));
 
@@ -157,20 +156,15 @@ void DropblockForward(
         }
     }
     std::vector<std::vector<std::vector<int>>> kernel_1d(nbatches,std::vector<std::vector<int>>(1,std::vector<int>(block_size*block_size)));
-    printf("kernel_1d:\n");
     for (int n = 0; n < nbatches; ++n) {
         for (int j = 0; j < 1; ++j) {
             for (int k = 0; k < block_size; ++k) {
                 for (int m = 0; m < block_size; ++m) {
 
                     kernel_1d[n][j][m + k * block_size] = weight_mat[n][j][k][m];
-                    printf("%d\t",kernel_1d[n][j][m + k * block_size]);
                 }
-                printf("\n");
             }
-            printf("\n");
         }
-        printf("\n");
     }
 
     //计算卷积输出矩阵的维数
@@ -302,7 +296,6 @@ void DropblockForward(
     }
 
     std::vector<int> C;//存储卷积完了的数字
-    //printf("详细的计算信息：");
     for (int k = 0; k < nbatches; ++k) {
         for (int l = 0; l < 1; ++l) {
             for (int m = 0; m < outm; ++m) {
@@ -311,12 +304,8 @@ void DropblockForward(
                     index_t wh = m * outm * convAw + n * convAw;
                     for (int j = 0; j < convAw; ++j) {
                         result_one_position += A_convert[k][l][wh + j] * kernel_1d[k][l][j];
-                        //printf("A_convert[%d][%d][%lld]:%d\t",k,l,wh+j,A_convert[k][l][wh + j]);
-                        //printf("kernel_1d[%d][%d][%d]:%d\t",k,l,j,kernel_1d[k][l][j]);
-
                     }
-                    //printf("\n");
-                    C.push_back(result_one_position);//input[0]*1*outm*outm
+                    C.push_back(result_one_position);
                 }
             }
         }
@@ -337,18 +326,13 @@ void DropblockForward(
     index_t height_to_crop = outm - input_height;
     index_t width_to_crop = outm - input_width;
     if (height_to_crop != 0) {
-        printf("height_to_crop !=0");
         for (int k = 0; k < nbatches; ++k) {
             for (int l = 0; l < 1; ++l) {
                 for (int m = 0; m < outm - height_to_crop + 1; ++m) {
-                    printf("\n");
                     for (int n = 0; n < outm; ++n) {
                         mask_conved[k][l][m][n] = (C[k * outm * (outm - height_to_crop)
                                                      + l * outm * (outm - height_to_crop) +
                                                      m * outm + n]==0)? 1:0;
-                        printf("%d\t",C[k * outm * (outm - height_to_crop)
-                                        + l * outm * (outm - height_to_crop) +
-                                        m * outm + n]);
                     }
 
                 }
@@ -356,62 +340,42 @@ void DropblockForward(
         }
     }
     if (width_to_crop != 0) {
-        printf("width_to_crop !=0");
         for (int k = 0; k < nbatches; ++k) {
             for (int l = 0; l < 1; ++l) {
                 for (int m = 0; m < outm; ++m) {
-                    printf("\n");
                     for (int n = 0; n < outm - width_to_crop + 1; ++n) {
                         mask_conved[k][l][m][n] =( C[k * outm * (outm - width_to_crop) +
                                                      l * outm * (outm - width_to_crop) +
                                                      m * (outm - width_to_crop) + n]==0)? 1:0;
-                        printf("%d\t",C[k * outm * (outm - width_to_crop) +
-                                        l * outm * (outm - width_to_crop) +
-                                        m * (outm - width_to_crop) + n]);
                     }
                 }
             }
         }
     }
     if ((width_to_crop != 0)&&(height_to_crop!=0)) {
-        printf("width_to_crop !=0");
         for (int k = 0; k < nbatches; ++k) {
             for (int l = 0; l < 1; ++l) {
                 for (int m = 0; m < outm-height_to_crop+1; ++m) {
-                    printf("\n");
                     for (int n = 0; n < outm - width_to_crop + 1; ++n) {
                         mask_conved[k][l][m][n] =( C[k * (outm-height_to_crop) * (outm - width_to_crop) +
                                                      l * (outm-height_to_crop) * (outm - width_to_crop) +
                                                      m * (outm - width_to_crop) + n]==0)? 1:0;
-                        printf("%d\t",C[k * outm * (outm - width_to_crop) +
-                                        l * outm * (outm - width_to_crop) +
-                                        m * (outm - width_to_crop) + n]);
                     }
                 }
             }
         }
     }
-    printf("width_to_crop和height_to_crop都等于0");
     for (int k = 0; k < nbatches; ++k) {
         for (int l = 0; l < 1; ++l) {
             for (int m = 0; m < outm; ++m) {
-                printf("\n");
                 for (int n = 0; n < outm; ++n) {
                     mask_conved[k][l][m][n] =(C[k * outm * outm + l * outm * outm + m * outm + n]==0)? 1:0;
-
-                    printf("%d\t",C[k * outm * outm + l * outm * outm + m * outm + n]);
                 }
-                printf("\n");
             }
-            printf("\n");
         }
-        printf("\n");
     }
-
-    printf("\n");
     //把mask_conved变为一个1D的数组来与indata进行计算
     std::vector<int> mask_conved_1d(nbatches * nchannel * nheight * nwidth);
-    printf("mask_conved_1d：\n");
     for (int k = 0; k < nbatches; ++k) {
         for (int l = 0; l < nchannel; ++l) {
             for (int m = 0; m < nheight; ++m) {
@@ -420,18 +384,12 @@ void DropblockForward(
                     mask_conved_1d[k * nchannel * nheight * nwidth
                                    + l * nheight * nwidth +
                                    m * nwidth + n] = mask_conved[k][0][m][n];
-                    printf("%d\t",mask_conved_1d[k * nchannel * nheight * nwidth
-                                                 + l * nheight * nwidth +
-                                                 m * nwidth + n]);
-
                 }
-                printf("\n");
             }
-            printf("\n");
         }
     }
     for (index_t i = 0;  i < N; ++i) {
-        mask_out[i] = mask_conved_1d[i] * (1.0f / pkeep);
+        mask_out[i] = mask_conved_1d[i] * (1.0f / p_current);
         dropblock_out[i] = mask_out[i] * input_data[i];
     }
 
@@ -472,6 +430,7 @@ void DropblockForwardCompute(const nnvm::NodeAttrs& attrs,
      const int nchannel=inputs[gpudropblock::kData].shape_[1];
      const int nheight=inputs[gpudropblock::kData].shape_[2];
      const int nwidth=inputs[gpudropblock::kData].shape_[3];
+     int iteration=0;
      const TBlob &out=outputs[gpudropblock::kOut];
      if(ctx.is_train||(param.mode==gpudropblock::kAlways))
      {
@@ -484,7 +443,6 @@ void DropblockForwardCompute(const nnvm::NodeAttrs& attrs,
          })
      }
      else {
-         printf("以上啥都没有发生");
          const TBlob& data = inputs[gpudropblock::kData];
          if (req[gpudropblock::kOut] == kWriteTo) {
              mxnet_op::copy(s, out, data);
@@ -554,36 +512,122 @@ void DropblockForwardCompute(const nnvm::NodeAttrs& attrs,
 
 DMLC_REGISTER_PARAMETER(GPUDropblockParam);
 
-NNVM_REGISTER_OP(GPUDropblock)//这个就是OP的名字么？
+NNVM_REGISTER_OP(GPUDropblock)
 .describe(R"(Applies dropblock operation to input array.
 
-- During training, each element of the input is set to zero with probability p.
+- During training, dropout a neighboring area in the feature map,in other word,some certain area of the input is set to zero with probability p.
   The whole array is rescaled by :math:`1/(1-p)` to keep the expected
   sum of the input unchanged.
 
 - During testing, this operator does not change the input if mode is 'training'.
   If mode is 'always', the same computaion as during training will be applied.
 
+- The input data must be a 4-D tensor with same height and width.
+
 Example::
 
   random.seed(998)
-  input_array = array([[3., 0.5,  -0.5,  2., 7.],
-                      [2., -0.4,   7.,  3., 0.2]])
+  input_array = array([[[[  0.   1.   2.   3.   4.   5.   6.   7.   8.]
+   [  9.  10.  11.  12.  13.  14.  15.  16.  17.]
+   [ 18.  19.  20.  21.  22.  23.  24.  25.  26.]
+   [ 27.  28.  29.  30.  31.  32.  33.  34.  35.]
+   [ 36.  37.  38.  39.  40.  41.  42.  43.  44.]
+   [ 45.  46.  47.  48.  49.  50.  51.  52.  53.]
+   [ 54.  55.  56.  57.  58.  59.  60.  61.  62.]
+   [ 63.  64.  65.  66.  67.  68.  69.  70.  71.]
+   [ 72.  73.  74.  75.  76.  77.  78.  79.  80.]]
+
+  [[ 81.  82.  83.  84.  85.  86.  87.  88.  89.]
+   [ 90.  91.  92.  93.  94.  95.  96.  97.  98.]
+   [ 99. 100. 101. 102. 103. 104. 105. 106. 107.]
+   [108. 109. 110. 111. 112. 113. 114. 115. 116.]
+   [117. 118. 119. 120. 121. 122. 123. 124. 125.]
+   [126. 127. 128. 129. 130. 131. 132. 133. 134.]
+   [135. 136. 137. 138. 139. 140. 141. 142. 143.]
+   [144. 145. 146. 147. 148. 149. 150. 151. 152.]
+   [153. 154. 155. 156. 157. 158. 159. 160. 161.]]
+
+  [[162. 163. 164. 165. 166. 167. 168. 169. 170.]
+   [171. 172. 173. 174. 175. 176. 177. 178. 179.]
+   [180. 181. 182. 183. 184. 185. 186. 187. 188.]
+   [189. 190. 191. 192. 193. 194. 195. 196. 197.]
+   [198. 199. 200. 201. 202. 203. 204. 205. 206.]
+   [207. 208. 209. 210. 211. 212. 213. 214. 215.]
+   [216. 217. 218. 219. 220. 221. 222. 223. 224.]
+   [225. 226. 227. 228. 229. 230. 231. 232. 233.]
+   [234. 235. 236. 237. 238. 239. 240. 241. 242.]]]])
   a = symbol.Variable('a')
   dropblock = symbol.GPUDropblock(a, p = 0.2,block_size=3)
   executor = dropblock.simple_bind(a = input_array.shape)
 
   ## If training
+  dropblock = symbol.GPUDropblock(a,p=0.2,block_size=3,mode='always')
   executor.forward(is_train = True, a = input_array)
   executor.outputs
-  [[ 3.75   0.625 -0.     2.5    8.75 ]
-   [ 2.5   -0.5    8.75   3.75   0.   ]]
+  [[[[  0.   2.   4.   6.   8.  10.  12.  14.  16.]
+   [ 18.  20.  22.  24.  26.  28.  30.  32.  34.]
+   [ 36.   0.   0.   0.  44.  46.  48.  50.  52.]
+   [ 54.   0.   0.   0.  62.  64.  66.  68.  70.]
+   [ 72.   0.   0.   0.  80.  82.  84.  86.  88.]
+   [ 90.  92.  94.  96.   0.   0.   0. 104. 106.]
+   [108. 110. 112. 114.   0.   0.   0. 122. 124.]
+   [126. 128. 130. 132.   0.   0.   0. 140. 142.]
+   [144. 146. 148. 150. 152. 154. 156. 158. 160.]]
+
+  [[162. 164. 166. 168. 170. 172. 174. 176. 178.]
+   [180. 182. 184. 186. 188. 190. 192. 194. 196.]
+   [198.   0.   0.   0. 206. 208. 210. 212. 214.]
+   [216.   0.   0.   0. 224. 226. 228. 230. 232.]
+   [234.   0.   0.   0. 242. 244. 246. 248. 250.]
+   [252. 254. 256. 258.   0.   0.   0. 266. 268.]
+   [270. 272. 274. 276.   0.   0.   0. 284. 286.]
+   [288. 290. 292. 294.   0.   0.   0. 302. 304.]
+   [306. 308. 310. 312. 314. 316. 318. 320. 322.]]
+
+  [[324. 326. 328. 330. 332. 334. 336. 338. 340.]
+   [342. 344. 346. 348. 350. 352. 354. 356. 358.]
+   [360.   0.   0.   0. 368. 370. 372. 374. 376.]
+   [378.   0.   0.   0. 386. 388. 390. 392. 394.]
+   [396.   0.   0.   0. 404. 406. 408. 410. 412.]
+   [414. 416. 418. 420.   0.   0.   0. 428. 430.]
+   [432. 434. 436. 438.   0.   0.   0. 446. 448.]
+   [450. 452. 454. 456.   0.   0.   0. 464. 466.]
+   [468. 470. 472. 474. 476. 478. 480. 482. 484.]]]]
+
 
   ## If testing
+  dropblock = symbol.GPUDropblock(a,p=0.2,block_size=3,mode='training')
   executor.forward(is_train = False, a = input_array)
   executor.outputs
-  [[ 3.     0.5   -0.5    2.     7.   ]
-   [ 2.    -0.4    7.     3.     0.2  ]]
+  [[[[  0.   1.   2.   3.   4.   5.   6.   7.   8.]
+   [  9.  10.  11.  12.  13.  14.  15.  16.  17.]
+   [ 18.  19.  20.  21.  22.  23.  24.  25.  26.]
+   [ 27.  28.  29.  30.  31.  32.  33.  34.  35.]
+   [ 36.  37.  38.  39.  40.  41.  42.  43.  44.]
+   [ 45.  46.  47.  48.  49.  50.  51.  52.  53.]
+   [ 54.  55.  56.  57.  58.  59.  60.  61.  62.]
+   [ 63.  64.  65.  66.  67.  68.  69.  70.  71.]
+   [ 72.  73.  74.  75.  76.  77.  78.  79.  80.]]
+
+  [[ 81.  82.  83.  84.  85.  86.  87.  88.  89.]
+   [ 90.  91.  92.  93.  94.  95.  96.  97.  98.]
+   [ 99. 100. 101. 102. 103. 104. 105. 106. 107.]
+   [108. 109. 110. 111. 112. 113. 114. 115. 116.]
+   [117. 118. 119. 120. 121. 122. 123. 124. 125.]
+   [126. 127. 128. 129. 130. 131. 132. 133. 134.]
+   [135. 136. 137. 138. 139. 140. 141. 142. 143.]
+   [144. 145. 146. 147. 148. 149. 150. 151. 152.]
+   [153. 154. 155. 156. 157. 158. 159. 160. 161.]]
+
+  [[162. 163. 164. 165. 166. 167. 168. 169. 170.]
+   [171. 172. 173. 174. 175. 176. 177. 178. 179.]
+   [180. 181. 182. 183. 184. 185. 186. 187. 188.]
+   [189. 190. 191. 192. 193. 194. 195. 196. 197.]
+   [198. 199. 200. 201. 202. 203. 204. 205. 206.]
+   [207. 208. 209. 210. 211. 212. 213. 214. 215.]
+   [216. 217. 218. 219. 220. 221. 222. 223. 224.]
+   [225. 226. 227. 228. 229. 230. 231. 232. 233.]
+   [234. 235. 236. 237. 238. 239. 240. 241. 242.]]]]
 )" ADD_FILELINE)
 .set_num_inputs(1)
 .set_num_outputs(2)
