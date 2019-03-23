@@ -18,13 +18,14 @@ convolutional networks]（https://arxiv.org/pdf/1810.12890.pdf）
 * gpu，cpu均能进行训练
 * mnist训练集上测试通过
 * 新增了维度检查功能 用户输入二维特征图是程序不会奔溃
+* 加入了p_keep schedule 功能
+* 在cifar100上完成了测试 大约有1~1.5个百分点的提升
 
 ### dropblock_gpu和dropout_cpu mnist训练效果对比
 ![](https://github.com/yuyijie1995/dropblock_mxnet_bottom_implemention/blob/master/gpu_blocksize3.png)
 ![](https://github.com/yuyijie1995/dropblock_mxnet_bottom_implemention/blob/master/cpu_dropout.jpg)
 
 ### TODO
-* 加入pkeep随训练次数迭代的功能
 * 尝试增加高宽不相等的特征图的dropblock功能
 * 学习谷歌代码规范对代码进行优化
-* 对cifar10进行训练 观察效果
+
