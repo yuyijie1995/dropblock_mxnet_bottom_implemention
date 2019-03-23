@@ -23,14 +23,12 @@ void DropblockForward(
     DCHECK(nbatches!=0);
     DCHECK(N>0);
     static int iteration=0;
-    float p_current=1.0;
+    static float p_current=1.0;
     if (p_current>pkeep)
     {
         ++iteration;
         p_current-=((p_current-pkeep)/5000.0)*iteration;
     }
-    printf("current iteration is :%d",iteration);
-    printf("current pkeep is :%f",p_current);
 
     index_t feat_size=nheight;
     double gamma=((1 - p_current) / (block_size * block_size)) * ((feat_size * feat_size) /
