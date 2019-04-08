@@ -27,7 +27,7 @@ void DropblockForward(
     if (p_current>pkeep)
     {
         ++iteration;
-        p_current-=((p_current-pkeep)/5000.0)*iteration;
+        p_current-=((p_current-pkeep)/20000.0)*iteration;
     }
 
     index_t feat_size=nheight;

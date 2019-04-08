@@ -1,0 +1,68 @@
+Namespace(batch_size=128, gpus='0,1,2,3', lamda=0.2, lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], margin=0.1, momentum=0.9, mult=0.06, num_epoch=300, num_workers=0, optimizer='Nesterov', save_prefix='output/resnet18', save_step=5, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=128, gpus='0,1,2,3', lamda=0.2, lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], margin=0.1, momentum=0.9, mult=0.06, num_epoch=300, num_workers=0, optimizer='sgd', save_prefix='output/resnet18', save_step=5, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=128, gpus='0,1,2,3', lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], momentum=0.9, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=5, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=128, gpus='0,1,2,3', lamda=0.2, lr=0.01, lr_decay=0.1, lr_decay_epoch=[150, 255], margin=0.1, momentum=0.9, mult=0.06, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=5, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=128, gpus='0,1,2', lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], momentum=0.9, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=100, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=129, gpus='0,1,2', lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], momentum=0.9, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=100, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=96, gpus='0,1,2', lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], momentum=0.9, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=100, use_hybrid=False, wd=0.0005)
+Namespace(batch_size=128, gpus='0,1', lr=0.1, lr_decay=0.1, lr_decay_epoch=[150, 255], momentum=0.9, num_epoch=300, num_workers=8, optimizer='sgd', save_prefix='output/resnet18', save_step=100, use_hybrid=False, wd=0.0005)
+Epoch[0] Train-acc=0.363675 Train-loss=4.027393
+Epoch[0] Val-acc=0.460146
+Epoch[1] Train-acc=0.521763 Train-loss=2.645306
+Epoch[1] Val-acc=0.574960
+Epoch[2] Train-acc=0.605351 Train-loss=2.230338
+Epoch[2] Val-acc=0.536788
+Epoch[3] Train-acc=0.658148 Train-loss=1.948956
+Epoch[3] Val-acc=0.559434
+Epoch[4] Train-acc=0.695688 Train-loss=1.737870
+Epoch[4] Val-acc=0.597903
+Epoch[5] Train-acc=0.723669 Train-loss=1.589937
+Epoch[5] Val-acc=0.588113
+Epoch[6] Train-acc=0.747127 Train-loss=1.458452
+Epoch[6] Val-acc=0.663370
+Epoch[7] Train-acc=0.766057 Train-loss=1.354306
+Epoch[7] Val-acc=0.663964
+Epoch[8] Train-acc=0.781821 Train-loss=1.268845
+Epoch[8] Val-acc=0.680973
+Epoch[9] Train-acc=0.793015 Train-loss=1.204438
+Epoch[9] Val-acc=0.674347
+Epoch[10] Train-acc=0.799540 Train-loss=1.156836
+Epoch[10] Val-acc=0.668216
+Epoch[11] Train-acc=0.806813 Train-loss=1.123859
+Epoch[11] Val-acc=0.680182
+Epoch[12] Train-acc=0.815709 Train-loss=1.062876
+Epoch[12] Val-acc=0.598991
+Epoch[13] Train-acc=0.827781 Train-loss=1.002542
+Epoch[13] Val-acc=0.719937
+Epoch[14] Train-acc=0.829903 Train-loss=0.984476
+Epoch[14] Val-acc=0.665843
+Epoch[15] Train-acc=0.835878 Train-loss=0.956396
+Epoch[15] Val-acc=0.696796
+Epoch[16] Train-acc=0.837524 Train-loss=0.936235
+Epoch[16] Val-acc=0.637065
+Epoch[17] Train-acc=0.842419 Train-loss=0.913902
+Epoch[17] Val-acc=0.727848
+Epoch[18] Train-acc=0.847011 Train-loss=0.882289
+Epoch[18] Val-acc=0.651602
+Epoch[19] Train-acc=0.846192 Train-loss=0.885409
+Epoch[19] Val-acc=0.685720
+Epoch[20] Train-acc=0.850140 Train-loss=0.864801
+Epoch[20] Val-acc=0.695016
+Epoch[21] Train-acc=0.855135 Train-loss=0.843972
+Epoch[21] Val-acc=0.703026
+Epoch[22] Train-acc=0.855283 Train-loss=0.841238
+Epoch[22] Val-acc=0.679786
+Epoch[23] Train-acc=0.856845 Train-loss=0.828337
+Epoch[23] Val-acc=0.727650
+Epoch[24] Train-acc=0.860710 Train-loss=0.814898
+Epoch[24] Val-acc=0.695411
+Epoch[25] Train-acc=0.861897 Train-loss=0.805792
+Epoch[25] Val-acc=0.715388
+Epoch[26] Train-acc=0.860262 Train-loss=0.798111
+Epoch[26] Val-acc=0.694818
+Epoch[27] Train-acc=0.862888 Train-loss=0.792298
+Epoch[27] Val-acc=0.691851
+Epoch[28] Train-acc=0.864154 Train-loss=0.788954
+Epoch[28] Val-acc=0.725771
+Epoch[29] Train-acc=0.864186 Train-loss=0.782374
+Epoch[29] Val-acc=0.720827
