@@ -89,7 +89,7 @@ Example::
     [](const NodeAttrs& attrs) {
   return 1;
 })
-.set_attr<nnvm::FInferShape>("FInferShape", [](const nnvm::NodeAttrs& attrs,
+.set_attr<mxnet::FInferShape>("FInferShape", [](const nnvm::NodeAttrs& attrs,
       std::vector<TShape> *in_shape, std::vector<TShape> *out_shape){
   using namespace mshadow;
   CHECK_EQ(in_shape->size(), 1U);
